@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" context="IE=9">
+<meta charset="UTF-8">
+
+<!-- JQuery package --->
+
+<script type="text/javascript" src="./CSC_541_Assignment_1_files/jquery-1.9.1.min.js"></script><style type="text/css"></style>
+
+<!-- Google Code hyphenator -->
+
+<script type="text/javascript" src="./CSC_541_Assignment_1_files/hyphenate.js"></script>
+
+<!-- Google fonts stuff -->
+
+<link rel="stylesheet" type="text/css" href="./CSC_541_Assignment_1_files/css">
+<link rel="stylesheet" type="text/css" href="./CSC_541_Assignment_1_files/css(1)">
+<link rel="stylesheet" type="text/css" href="./CSC_541_Assignment_1_files/css(2)">
+
+<!-- Course page CSS and JS -->
+
+<link type="text/css" href="./CSC_541_Assignment_1_files/course.css" rel="stylesheet">
+<script type="text/javascript" src="./CSC_541_Assignment_1_files/mod-date.js"></script>
+
+
+<title>CSC 541: Assignment 1</title>
+</head>
+
+<body bgcolor="white" class="hyphenate">
+
+<div style="text-align: center;">
+<span style="
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 1200px;
+  height: 300px;
+  background-image: url( &#39;../hdd.png&#39; );
+  background-repeat: no-repeat;
+">
+<div style="
+  position: absolute;
+  align: left;
+  text-align: left;
+  top: 40px;
+  left: 10px;
+  font-family: &#39;Trebuchet MS&#39;, Helvetica, sans-serif;
+  font-size: 16pt;
+  font-weight: normal;
+  color: black;
+  filter: alpha(opacity=80);
+  opacity: .8;
+">
+  <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/index.html">CSC 541</a><br>
+  As­sign­ment 1
+  <div style="padding-top: .3em; font-size: 10pt;">
+    In-Mem­ory vs. Disk-Based Search­ing
+  </div>
+</div>
+<div style="
+  position: absolute;
+  align: left;
+  top: 0px;
+  left: 0px;
+">
+  <a href="http://www.ncsu.edu/">
+  <img src="./CSC_541_Assignment_1_files/nc-state-logo.png" style="border-style: none">
+  </a>
+</div>
+</span>
+</div>
+
+<!--Spacer after image of one "line"-->
+
+<div style="height: 1em;"></div>
+
+
+<h2>In­tro­duc­tion</h2>
+
+<p>The goals of this as­sign­ment are two-fold:</p>
+
+<ol>
+
+<li>To in­tro­duce you to ran­dom-ac­cess file I/O in UNIX using C.
+
+</li><li>To in­ves­ti­gate time ef­fi­ciency is­sues as­so­ci­ated with in-mem­ory
+ver­sus disk-based search­ing strate­gies.
+
+</li></ol>
+
+<p>This as­sign­ment uses two "lists" of in­te­ger val­ues: a key
+list and a seek list. The key list is a col­lec­tion of
+in­te­gers <i>K</i> = (<i>k<sub>0</sub></i>,
+..., <i>k<sub>n-1</sub></i>) rep­re­sent­ing <i>n</i> keys for a
+hy­po­thet­i­cal data­base. The seek list is a sep­a­rate col­lec­tion of
+in­te­gers <i>S</i> = (<i>s<sub>0</sub></i>,
+..., <i>s<sub>m-1</sub></i>) rep­re­sent­ing a se­quence of <i>m</i>
+re­quests for keys to be re­trieved from the data­base.</p>
+
+<p>You will im­ple­ment two dif­fer­ent search strate­gies to try to lo­cate
+each <i>s<sub>i</sub></i> from the seek list:</p>
+
+<ul>
+
+<li><b>Lin­ear search.</b> A se­quen­tial search of <i>K</i> for a key
+that matches the cur­rent seek value <i>s<sub>i</sub></i>.
+
+</li><li><b>Bi­nary search.</b> A bi­nary search through a sorted list of
+keys <i>K</i> for a key that matches the cur­rent seek
+value <i>s<sub>i</sub></i>. The fact that the keys are sorted al­lows
+ap­prox­i­mately half the re­main­ing keys to be ig­nored from con­sid­er­a­tion
+dur­ing each step of the search.
+
+</li></ul>
+
+<p>Each of the two searches (lin­ear and bi­nary) will be per­formed in
+two dif­fer­ent en­vi­ron­ments. In the first, the key list <i>K</i> will
+be held com­pletely in mem­ory. In the sec­ond, in­di­vid­ual
+el­e­ments <i>k<sub>i</sub></i> ∈ <i>K</i> will read from disk as
+they are needed.</p>
+
+
+<h2>Key and Seek Lists</h2>
+
+<p>The key and seek lists are pro­vided to you as bi­nary files. Each
+bi­nary file con­tains a se­quence of in­te­ger val­ues stored one after
+an­other in order. You can down­load ex­am­ples of both files from
+the <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/index.html#supplemental_material">Sup­ple­men­tal Ma­te­r­ial</a> sec­tion
+of this web page.</p>
+
+<p>Be sure to cap­ture these files as bi­nary data. The ex­am­ple file
+sizes should be 20,000 bytes for the key file, and 40,000 bytes for
+the seek file. For sim­plic­ity, the re­main­der of the as­sign­ment refers
+only to <code>key.db</code> and <code>seek.db</code>.
+
+</p><p><b>Note.</b> The files we're pro­vid­ing here are meant to serve as
+ex­am­ples only. Apart from hold­ing in­te­gers, <b>you can­not make any
+as­sump­tions</b> about the size or the con­tent of the key and seek
+files we will use to test your pro­gram.</p>
+
+<h2>Pro­gram Ex­e­cu­tion</h2>
+
+<p>Your pro­gram will be named <code>assn_1</code> and it will run from
+the com­mand line. Three com­mand line ar­gu­ments will be spec­i­fied: a
+search mode, the name of the key file, and the name of the seek
+file.</p>
+
+<blockquote>
+<code>assn_1 search-mode keyfile-name seekfile-name</code>
+</blockquote>
+
+<p>Your pro­gram must sup­port four dif­fer­ent search modes.</p>
+
+<ol>
+
+<li class="tight"><code>--mem-lin </code>&nbsp;&nbsp;&nbsp;Read the
+key file into mem­ory. Per­form a lin­ear search for each seek
+el­e­ment <i>s<sub>i</sub></i> in the seek file.
+
+</li><li class="tight"><code>--mem-bin </code>&nbsp;&nbsp;&nbsp;Read the
+key file into mem­ory. Per­form a bi­nary search for each seek
+el­e­ment <i>s<sub>i</sub></i> in the seek file.
+
+</li><li class="tight"><code>--disk-lin</code>&nbsp;&nbsp;&nbsp;Read
+each <i>k<sub>i</sub></i> from the key file as it is needed. Per­form a
+lin­ear search for each seek el­e­ment <i>s<sub>i</sub></i> in the seek
+file.
+
+</li><li class="tight"><code>--disk-bin</code>&nbsp;&nbsp;&nbsp;Read
+each <i>k<sub>i</sub></i> from the key file as it is needed. Per­form a
+bi­nary search for each seek el­e­ment <i>s<sub>i</sub></i> in the seek
+file.
+
+</li></ol>
+
+<p>For ex­am­ple, ex­e­cut­ing your pro­gram as fol­lows</p>
+
+<blockquote>
+<code>assn_1 --disk-lin key.db seek.db</code>
+</blockquote>
+
+<p>would search for each el­e­ment in <code>seek.db</code> using an
+on-disk lin­ear search within <code>key.db</code>.</p>
+
+<h2>In-Mem­ory Se­quen­tial Search</h2>
+
+<p>If your pro­gram sees the search mode <code>--mem-lin</code>, it
+will im­ple­ment an in-mem­ory se­quen­tial search of the key list stored
+in <code>key.db</code>. The pro­gram should per­form the fol­low­ing
+steps.</p>
+
+<ol>
+
+<li>Open and read <code>seek.db</code> into an ap­pro­pri­ately-sized
+in­te­ger array <code>S</code>.
+
+</li><li>Open and read <code>key.db</code> into an ap­pro­pri­ately-sized
+in­te­ger array <code>K</code>.
+
+</li><li>Cre­ate a third array of in­te­gers called <code>hit</code> of the
+same size as <code>S</code>. You will use this array to record whether
+each seek value <code>S[i]</code> ex­ists in <code>K</code> or not.
+
+</li><li>For each <code>S[i]</code>, search <code>K</code> se­quen­tially
+from be­gin­ning to end for a match­ing key value. If <code>S[i]</code>
+is found in <code>K</code>, set <code>hit[i]=1</code>. If
+<code>S[i]</code> is not found in <code>K</code>,
+set <code>hit[i]=0</code>.
+
+</li></ol>
+
+<p>You must record how much time it takes to open and
+load <code>key.db</code>, and to then de­ter­mine the pres­ence or
+ab­sence of each <code>S[i]</code>. This is the total cost of
+per­form­ing the nec­es­sary steps in an in-mem­ory se­quen­tial search. Be
+sure to mea­sure only the time needed for these two steps:
+load­ing <code>key.db</code> and search­ing <code>K</code> for
+each <code>S[i]</code>. Any other pro­cess­ing should not be
+in­cluded.</p>
+
+
+<h2>In-Mem­ory Bi­nary Search</h2>
+
+<p>If your pro­gram sees the search mode <code>--mem-bin</code>, it
+will im­ple­ment an in-mem­ory bi­nary search of the key list stored
+in <code>key.db</code>. The keys in <code>key.db</code> are stored in
+sorted order, so they can be read and searched di­rectly. Your pro­gram
+should per­form the fol­low­ing steps.</p>
+
+<ol>
+
+<li>Open and read <code>seek.db</code> into an ap­pro­pri­ately-sized
+in­te­ger array <code>S</code>.
+
+</li><li>Open and read <code>key.db</code> into an ap­pro­pri­ately-sized
+in­te­ger array <code>K</code>.
+
+</li><li>Cre­ate a third array of in­te­gers called <code>hit</code> of the
+same size as <code>S</code>. You will use this array to record whether
+each seek value <code>S[i]</code> ex­ists in <code>K</code> or not.
+
+</li><li>For each <code>S[i]</code>, use a bi­nary search on <code>K</code>
+to find a match­ing key value. If <code>S[i]</code> is found
+in <code>K</code>, set <code>hit[i]=1</code>. If <code>S[i]</code> is
+not found, set <code>hit[i]=0</code>.
+
+</li></ol>
+
+<p>You must record how much time it takes to open and
+load <code>key.db</code>, and to then de­ter­mine the pres­ence or
+ab­sence of each <code>S[i]</code>. This is the total cost of
+per­form­ing the nec­es­sary steps in an in-mem­ory bi­nary search. Be sure
+to mea­sure only the time needed for these two steps:
+load­ing <code>key.db</code> and search­ing <code>K</code> for
+each <code>S[i]</code>. Any other pro­cess­ing should not be
+in­cluded.</p>
+
+<p><b>Re­call.</b> To per­form a bi­nary search for <code>S[i]</code> in
+an array <code>K</code> of size <code>n</code>, begin by
+com­par­ing <code>S[i]</code> to <code>K[n/2]</code>.</p>
+
+<ul>
+
+<li>If <code>S[i]&nbsp;==&nbsp;K[n/2]</code>, the
+search suc­ceeds.
+
+</li><li>If <code>S[i]&nbsp;&lt;&nbsp;K[n/2]</code>, re­cur­sively search the
+lower
+sub­ar­ray <code>K[0]</code> ... <code>K[(n/2)-1]</code>
+for <code>S[i]</code>.
+
+</li><li>Oth­er­wise, re­cur­sively search the upper sub­ar­ray
+<code>K[(n/2)+1]</code> ... <code>K[n-1]</code>
+for <code>S[i]</code>.
+
+</li></ul>
+
+<p>Con­tinue re­cur­sively search­ing for <code>S[i]</code> and di­vid­ing
+the sub­ar­ray until <code>S[i]</code> found, or until the size of the
+sub­ar­ray to search is 0, in­di­cat­ing the search has failed.</p>
+
+
+<h2>On-Disk Se­quen­tial Search</h2>
+
+<p>For on-disk search modes, you will not load <code>key.db</code>
+into an array in mem­ory. In­stead, you will search the file di­rectly on
+disk.</p>
+
+<p>If your pro­gram sees the search mode <code>--disk-lin</code>, it
+will im­ple­ment an on-disk se­quen­tial search of the key list stored
+in <code>key.db</code>. The pro­gram should per­form the fol­low­ing
+steps.</p>
+
+<ol>
+
+<li>Open and read <code>seek.db</code> into an ap­pro­pri­ately-sized
+in­te­ger array <code>S</code>.
+
+</li><li>Open <code>key.db</code> for read­ing.
+
+</li><li>Cre­ate a sec­ond array of in­te­gers called <code>hit</code> of the
+same size as <code>S</code>. You will use this array to record whether
+each seek value <code>S[i]</code> ex­ists in <i>K</i> or not.
+
+</li><li>For each <code>S[i]</code>, search <code>key.db</code>
+se­quen­tially from be­gin­ning to end for a match­ing key value by
+read­ing <i>K</i><sub>0</sub> and com­par­ing it to <code>S[i]</code>,
+read­ing <i>K</i><sub>1</sub> and com­par­ing it to <code>S[i]</code>, and
+so on. If <code>S[i]</code> is found in <code>key.db</code>,
+set <code>hit[i]=1</code>. If <code>S[i]</code> is not found
+in <code>key.db</code>, set <code>hit[i]=0</code>.
+
+</li></ol>
+
+<p>You must record how much time it takes to to de­ter­mine the pres­ence
+or ab­sence of each <code>S[i]</code> in <code>key.db</code>. This is
+the total cost of per­form­ing the nec­es­sary steps in an on-disk
+se­quen­tial search. Be sure to mea­sure only the time needed to
+search <code>key.db</code> for each <code>S[i]</code>. Any other
+pro­cess­ing should not be in­cluded.</p>
+
+<p><b>Note.</b> If you read past the end of a file in C, its EOF flag
+is set. Be­fore you can per­form any other op­er­a­tions on the file, you
+must reset the EOF flag. There are two ways to do this: (1) close and
+re-open the file; or (2) use the <code>clearerr()</code> func­tion to
+clear the <code>FILE</code> stream's EOF and error bits.</p>
+
+
+<h2>On-Disk Bi­nary Search</h2>
+
+<p>If your pro­gram sees the search mode <code>--disk-bin</code>, it
+will im­ple­ment an on-disk bi­nary search of the key list stored
+in <code>key.db</code>. The keys in <code>key.db</code> are stored in
+sorted order, so they can be read and searched di­rectly. The pro­gram
+should per­form the fol­low­ing steps.</p>
+
+<ol>
+
+<li>Open and read <code>seek.db</code> into an ap­pro­pri­ately-sized
+in­te­ger array <code>S</code>.
+
+</li><li>Open <code>key.db</code> for read­ing.
+
+</li><li>Cre­ate a sec­ond array of in­te­gers called <code>hit</code> of the
+same size as <code>S</code>. You will use this array to record whether
+each seek value <code>S[i]</code> ex­ists in <i>K</i> or not.
+
+</li><li>For each <code>S[i]</code>, use a bi­nary search
+on <code>key.db</code> to find a match­ing key
+value. If <code>S[i]</code> is found in <code>key.db</code>,
+set <code>hit[i]=1</code>. If <code>S[i]</code> is not found
+in <code>key.db</code>, set <code>hit[i]=0</code>.
+
+</li></ol>
+
+<p>You must record how much time it takes to to de­ter­mine the pres­ence
+or ab­sence of each <code>S[i]</code> in <code>key.db</code>. This is
+the total cost of per­form­ing the nec­es­sary steps in an on-disk bi­nary
+search. Be sure to mea­sure only the time needed to
+search <code>key.db</code> for each <code>S[i]</code>. Any other
+pro­cess­ing should not be in­cluded.</p>
+
+
+<h2>Pro­gram­ming En­vi­ron­ment</h2>
+
+<p>All pro­grams must be writ­ten in C, and com­piled to run on
+the <code>remote.eos.ncsu.edu</code> Linux server. Any ssh client can
+be used to ac­cess your Unity ac­count and AFS stor­age space on this
+ma­chine.</p>
+
+
+<h4>Read­ing Bi­nary In­te­gers</h4>
+
+<p>C's built-in file op­er­a­tions allow you to eas­ily read in­te­ger data
+stored in a bi­nary file. For ex­am­ple, the fol­low­ing code snip­pet opens
+a bi­nary in­te­ger file for input and reads three in­te­gers: the first
+in­te­ger in the file, the third in­te­ger from the start of the file, and
+the sec­ond in­te­ger from the end of the file.</p>
+
+<div class="codeblock" style="margin-top: 8px;">
+#in­clude &lt;stdio.h&gt;
+
+FILE *inp;          /* Input file stream */
+int   k1, k2, k3;   /* Keys to read */
+
+inp = fopen( "key.​db", "rb" );
+
+fread( &amp;k1, sizeof( int ), 1, inp )
+
+fseek( inp, 2 * sizeof( int ), SEEK_SET );
+fread( &amp;k2, sizeof( int ), 1, inp )
+
+fseek( inp, -2 * sizeof( int ), SEEK_END );
+fread( &amp;k3, sizeof( int ), 1, inp )
+</div>
+
+
+<h4>Mea­sur­ing Time</h4>
+
+<p>The sim­plest way to mea­sure ex­e­cu­tion time is to use
+<code>gettimeofday()</code> to query the cur­rent time at ap­pro­pri­ate
+lo­ca­tions in your pro­gram.</p>
+
+<div class="codeblock" style="margin-top: 8px;">
+#in­clude &lt;sys/time.h&gt;
+
+struct timeval tm;
+
+get­time­of­day( &amp;tm, NULL );
+printf( "Sec­onds: %d\n", tm.​tv_sec );
+printf( "Mi­crosec­onds: %d\n", tm.​tv_usec );
+</div>
+
+<p>Com­par­ing <code>tv_sec</code> and <code>tv_usec</code> for
+two <code>timeval</code> structs will allow you to mea­sure the amount
+of time that's passed be­tween two <code>gettimeofday()</code>
+calls.</p>
+
+
+<a name="writing_results">
+<h4>Writ­ing Re­sults</h4>
+</a>
+
+<p>Re­sults for each key in <code>S[i]</code>, and the total time
+needed to per­form all search­ing, must be writ­ten to the con­sole be­fore
+your pro­gram ter­mi­nates. The for­mat of your out­put must con­form to the
+fol­low­ing rules.</p>
+
+<ol>
+
+<li>Print one line for each <code>S[i]</code> in the order it oc­curs
+in <code>seek.db</code>. The line must con­tain the value
+of <code>S[i]</code> padded to be twelve char­ac­ters wide, a colon and
+a space, and the text <code>Yes</code> if <code>hit[i]==1</code> (key
+found) or the text <code>No</code> if <code>hit[i]=0</code> (key not
+found). The sim­plest way to do this is to use a <code>printf</code>
+state­ment, for ex­am­ple:
+
+<div class="codeblock" style="left: 4%; margin-top: 0px; margin-bottom: 12px;">
+printf( "%12d: Yes", S[i] );
+</div>
+
+</li><li>Print the total ex­e­cu­tion time for your pro­gram's search
+op­er­a­tions as a sin­gle line with the label <code>Time:</code> fol­lowed
+by a space, and the ex­e­cu­tion time in sec­onds and
+mi­crosec­onds. As­sum­ing the ex­e­cu­tion time is stored in
+a <code>timeval</code> struct called <code>exec_tm</code>, you can use
+a <code>printf</code> state­ment to do this.
+
+<div class="codeblock" style="left: 4%; margin-top: 0px; margin-bottom: 0px;">
+printf( "Time: %ld.%06ld", ex­ec_tm.tv_sec, ex­ec_tm.tv_usec );
+</div>
+
+</li></ol>
+
+<p>You can cap­ture your pro­gram's re­sults for fur­ther ex­am­i­na­tion or
+val­i­da­tion by redi­rect­ing its out­put to an ex­ter­nal file, for ex­am­ple,
+to a file called <code>output.txt</code>, as fol­lows.</p>
+
+<blockquote>
+<code>assn_1 --mem-lin key.db seek.db &gt; output.txt</code>
+</blockquote>
+
+<p>Your as­sign­ment will be run au­to­mat­i­cally, and the out­put it
+pro­duces will be com­pared to known, cor­rect out­put
+using <code>diff</code>. Be­cause of this, <b>your out­put must con­form
+to the above re­quire­ments ex­actly</b>. If it doesn't,
+<code>diff</code> will re­port your out­put as in­cor­rect, and it will be marked
+ac­cord­ingly.</p>
+
+
+<a name="supplemental_material">
+<h2>Sup­ple­men­tal Ma­te­r­ial</h2>
+</a>
+
+<p>In order to help you test your pro­gram, we pro­vide an
+ex­am­ple <code>key.db</code> and <code>seek.db</code>, as well as the
+out­put that your pro­gram should gen­er­ate when it processes these
+files.</p><p>
+
+</p><ul>
+
+<li><a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/key.db"><code>key.db</code></a>, a bi­nary in­te­ger key
+list file con­tain­ing 5000 keys,
+
+</li><li><a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/seek.db"><code>seek.db</code></a>, a bi­nary in­te­ger seek
+list file con­tain­ing 10000 keys, and
+
+</li><li><a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/output.txt"><code>output.txt</code></a>, the out­put your
+pro­gram should gen­er­ate when it processes <code>key.db</code>
+and <code>seek.db</code>.
+
+</li></ul>
+
+<p>You can use <code>diff</code> to com­pare out­put from your pro­gram
+to our <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/output.txt"><code>output.txt</code></a> file. Note
+that the final line con­tain­ing the ex­e­cu­tion time most likely won't
+match, but if your pro­gram is run­ning prop­erly and your out­put is
+for­mat­ted cor­rectly, all of the key searches should pro­duce iden­ti­cal
+re­sults.</p>
+
+<p>Please re­mem­ber, as em­pha­sized pre­vi­ously, the files we're
+pro­vid­ing here are meant to serve as ex­am­ples only. Apart from hold­ing
+in­te­gers, <b>you can­not make any as­sump­tions</b> about the size or the
+con­tent of the key and seek files we will use to test your
+pro­gram.</p>
+
+<h4>Test Files</h4>
+
+<p>The fol­low­ing files were used to test your pro­gram.</p>
+
+<ul>
+<li><b>Small Test Case.</b>
+  <ul class="sub">
+  <li><a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/key_sm.db"><code>key_sm.db</code></a>,
+  <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/seek_sm.db"><code>seek_sm.db</code></a>,
+  <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/output_sm.txt"><code>output_sm.txt</code></a>
+  </li></ul>
+
+</li><li><b>Medium Test Case.</b>
+  <ul class="sub">
+  <li><a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/key_med.db"><code>key_med.db</code></a>,
+  <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/seek_med.db"><code>seek_med.db</code></a>,
+  <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/output_med.txt"><code>output_med.txt</code></a>
+  </li></ul>
+
+</li><li><b>Large Test Case.</b>
+  <ul class="sub">
+  <li><a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/key_lg.db"><code>key_lg.db</code></a>,
+  <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/seek_lg.db"><code>seek_lg.db</code></a>,
+  <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/test/output_lg.txt"><code>output_lg.txt</code></a>
+  </li></ul>
+</li></ul>
+
+<p>Your pro­gram was run in all four search modes for the small and
+medium test cases. Your pro­gram was run
+in <code>--mem-lin</code>, <code>--mem-bin</code>, <code>--disk-bin</code>
+modes for the large test case (<i>i.e.</i>, we did not test
+the <code>--disk-lin</code> mode on the large test case).</p>
+
+<p>The small and large test cases were worth 20% (5% for each
+search mode) and 15% (5% for each search mode) re­spec­tively. The
+medium test case was worth 65% (16.25% for each search mode).
+The feed­back sec­tion in Moo­dle will de­tail how many points you re­ceived
+for each of the eleven test case–search mode pairs.</p>
+
+
+<h2>Hand-In Re­quire­ments</h2>
+
+<p>Use <a href="https://wolfware.ncsu.edu/?term=current&type=complex&what=CSC%20541" target="_blank">Moo­dle</a> (the on­line as­sign­ment sub­mis­sion
+soft­ware) to sub­mit the fol­low­ing files:</p>
+
+<ul>
+
+  <li><code>assn_1</code>, a Linux ex­e­cutable of your
+  fin­ished as­sign­ment, and
+	
+  </li><li>all as­so­ci­ated source code files (these can be called any­thing
+  you want).
+
+</li></ul>
+
+<p>There are four im­por­tant re­quire­ments that your as­sign­ment must
+sat­isfy.</p>
+
+<ol>
+
+  <li>Your ex­e­cutable file must be named ex­actly as shown above. The
+  pro­gram will be run and marked elec­tron­i­cally using a script file,
+  so using a dif­fer­ent name means the ex­e­cutable will not be found,
+  and sub­se­quently will not be marked.
+
+  </li><li>Your pro­gram must be com­piled to run
+  on <code>remote.eos.ncsu.edu</code>. If we can­not run your pro­gram,
+  we will not be able to mark it, and we will be forced to as­sign you
+  a grade of 0.
+
+  </li><li>Your pro­gram must pro­duce out­put that ex­actly matches the for­mat
+  de­scribed in the <a href="http://www.csc.ncsu.edu/faculty/healey/csc541/assn_1/index.html#writing_results">Writ­ing Re­sults</a>
+  sec­tion of this as­sign­ment. If it doesn't, it will not pass our
+  au­to­matic com­par­i­son to known, cor­rect out­put.
+
+  </li><li>You must sub­mit your source code with your ex­e­cutable prior to
+  the sub­mis­sion dead­line. If you do not sub­mit your source code, we
+  can­not MOSS it to check for code sim­i­lar­ity. Be­cause of this, any
+  as­sign­ment that does in­clude source code will be as­signed a grade of
+  0.
+
+</li></ol>
+
+<!-- The mod-date span will be updated by code in course.js -->
+
+<hr class="fig_top">
+<div class="footer">
+  Up­dated <span id="mod-date">12-Sep-14</span></div>
+
+
+
+
+<!--  LocalWords:  CSC EOF AFS inp fopen rb fread sizeof fseek sys tm
+ -->
+<!--  LocalWords:  struct timeval gettimeofday printf tv usec structs
+ -->
+<!--  LocalWords:  ld txt Moodle subarray
+ -->
+</body></html>
